@@ -1,3 +1,14 @@
+You’re *very* close — but you’ve got a few Markdown issues (and one big structural issue):
+
+1. Your folder tree code fence is broken (` ``` ```` mixed)
+2. You accidentally wrote `**init**.py` instead of `__init__.py`
+3. Your `shared/` folder tree indentation is off
+4. The **full MIT license should NOT live inside README** — it should be in a `LICENSE` file. In README, just say “MIT” (maybe + link).
+
+Below is a **clean, fully-correct, copy-paste README.md** that fixes everything and keeps it professional.
+
+---
+
 ```md
 # Raspberry Pi 5 CustomTkinter Hardware Template
 
@@ -19,7 +30,7 @@ Clone this repo to quickly start new Pi projects (LiDAR or anything else) with t
 
 - ✅ CustomTkinter UI (dark mode, component-friendly structure)
 - ✅ Threaded embedded worker (keeps UI responsive)
-- ✅ Queue-based protocol (Command/Event objects shared between UI + embedded)
+- ✅ Queue-based protocol (Command/Event objects shared by UI + embedded)
 - ✅ Raspberry Pi 5 compatible GPIO stack
   - `gpiozero` + `lgpio` backend (no `pigpiod` needed)
   - `rpi-lgpio` included for Pi 5 compatibility
@@ -61,6 +72,7 @@ Clone this repo to quickly start new Pi projects (LiDAR or anything else) with t
 ````
 
 ### Key files
+
 - `main.py`: App entry point. Creates `MainWindow` and starts the UI loop.
 - `ui/main_window.py`: UI, buttons, event polling (reads from `event_q`).
 - `embedded/worker.py`: Background thread that reads commands and calls `System`.
@@ -265,27 +277,9 @@ This repository is intended as a reusable starter template:
 
 ## License
 
-```
-MIT License
-
-Copyright (c) 2026 Adeun
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+MIT License — see the `LICENSE` file for details.
 
 ```
+
+---
+
