@@ -32,8 +32,7 @@ Clone this repo to quickly start new Pi projects (LiDAR or anything else) with t
 
 ## Project Structure
 
-```
-
+```text
 .
 ├─ main.py
 ├─ requirements.txt
@@ -58,7 +57,7 @@ Clone this repo to quickly start new Pi projects (LiDAR or anything else) with t
 ├─ **init**.py
 └─ protocol.py      # Command/Event definitions shared by UI + embedded
 
-````
+```
 
 ### Key files
 
