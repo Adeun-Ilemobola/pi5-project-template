@@ -1,0 +1,38 @@
+# ----------------------------
+# UI (CustomTkinter)
+# ----------------------------
+customtkinter>=5.2.2
+Pillow>=10.0.0
+rpi-lgpio>=0.6
+
+
+# ----------------------------
+# Raspberry Pi 5 GPIO + I2C
+# ----------------------------
+gpiozero>=2.0.1
+lgpio>=0.2.2.0
+smbus2>=0.4.3
+
+# ----------------------------
+# Common Pi hardware parts used in LiDAR builds
+# (PCA9685 servo driver + VL53L1X ToF sensor)
+# ----------------------------
+adafruit-blinka>=8.0.0
+adafruit-circuitpython-pca9685>=3.4.0
+adafruit-circuitpython-vl53l1x>=2.0.0
+
+# ----------------------------
+# Data / utility (often used for scan grids, math, arrays)
+# ----------------------------
+numpy>=1.24.0
+
+# ----------------------------
+# Common extras (safe + useful in embedded templates)
+# ----------------------------
+pyserial>=3.5
+PyYAML>=6.0.1
+
+# ----------------------------
+# VS Code debugging (works great in venv + Remote-SSH)
+# ----------------------------
+debugpy>=1.8.0
