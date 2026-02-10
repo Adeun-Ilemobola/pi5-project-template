@@ -42,7 +42,7 @@ class MainWindow(ctk.CTk):
     
 
         # Start polling events
-        self.after(16,self.poll_events)
+        self.after(15,self.poll_events)
 
         # Proper close handler
         self.protocol("WM_DELETE_WINDOW", self.on_close)
