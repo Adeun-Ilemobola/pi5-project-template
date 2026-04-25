@@ -1,36 +1,73 @@
-```md
 # Raspberry Pi 5 CustomTkinter Hardware Template
 
-A clean **Raspberry Pi 5** Python template for building **desktop UI + embedded hardware control** applications.
+A reusable **Raspberry Pi 5 desktop + hardware-control template** for building clean Python applications that combine a modern GUI with embedded system logic.
 
-This template uses a simple, reliable architecture:
-
-- **UI (CustomTkinter)** runs on the main thread
-- **Embedded worker thread** runs your hardware/system loop
-- Two queues connect them:
-  - **cmd_q**: UI → Embedded commands
-  - **event_q**: Embedded → UI events/logs
-
-Clone this repo to quickly start new Pi projects (LiDAR or anything else) with the same structure.
+This starter gives you a reliable project structure where the interface stays responsive while hardware work runs safely in the background.
 
 ---
 
-## Features
+## ⟡ What This Template Gives You
 
-- ✅ CustomTkinter UI (dark mode, component-friendly structure)
-- ✅ Threaded embedded worker (keeps UI responsive)
-- ✅ Queue-based protocol (Command/Event objects shared by UI + embedded)
-- ✅ Raspberry Pi 5 compatible GPIO stack
-  - `gpiozero` + `lgpio` backend (no `pigpiod` needed)
-  - `rpi-lgpio` included for Pi 5 compatibility
-- ✅ Clean shutdown path
-  - Closing the UI triggers `worker.shutdown()` which calls `system.shutdown()`
-- ✅ VS Code ready (`.vscode/launch.json` + `.vscode/settings.json`)
-- ✅ Default test system: Toggle LED on **GPIO12 (BCM 12)** via UI button
+This project is built around a simple but powerful idea:
+
+> Keep the UI clean, keep hardware control isolated, and let both sides communicate through queues.
+
+The architecture separates the application into three main layers:
+
+| Layer       | Purpose                                                       |
+| ----------- | ------------------------------------------------------------- |
+| `ui/`       | CustomTkinter desktop interface                               |
+| `embedded/` | Hardware logic, GPIO control, device modules, and worker loop |
+| `shared/`   | Command/Event protocol shared between UI and embedded code    |
+
+The result is a Raspberry Pi application that is easier to expand, debug, and reuse across future hardware projects.
 
 ---
 
-## Project Structure
+## ⚙️ Core Features
+
+* **CustomTkinter UI** with a clean dark-mode friendly structure
+* **Threaded embedded worker** so the UI does not freeze during hardware/system tasks
+* **Queue-based communication** between UI and embedded logic
+* **Command/Event protocol** shared across the whole app
+* **Raspberry Pi 5 GPIO compatibility** using `gpiozero`, `lgpio`, and `rpi-lgpio`
+* **No `pigpiod` requirement** for the default GPIO setup
+* **Clean shutdown path** for safely releasing GPIO and system resources
+* **VS Code ready** with included launch and settings files
+* **Default test system** for controlling an LED on **BCM GPIO12**
+
+---
+
+## 🧭 Architecture Overview
+
+The application uses two queues:
+
+```text
+UI Thread                         Embedded Worker Thread
+─────────                         ──────────────────────
+CustomTkinter UI                  Hardware/System Loop
+     │                                      │
+     │  Command objects                     │
+     ├────────────── cmd_q ───────────────▶ │
+     │                                      │
+     │  Event / Log objects                 │
+     ◀──────────── event_q ────────────────┤
+     │                                      │
+UI updates safely                 GPIO / I2C / Modules run here
+```
+
+### How the flow works
+
+1. The UI sends a `Command` into `cmd_q`.
+2. The embedded worker reads the command.
+3. The worker forwards it to the system layer.
+4. The system performs the hardware action.
+5. The embedded layer sends `Event` or `Log` objects back through `event_q`.
+6. The UI polls events using `.after(...)` so the interface stays responsive.
+
+---
+
+## 🗂️ Project Structure
 
 ```text
 .
@@ -41,74 +78,96 @@ Clone this repo to quickly start new Pi projects (LiDAR or anything else) with t
 │  ├─ launch.json
 │  └─ settings.json
 ├─ ui/
-│  ├─ **init**.py
+│  ├─ __init__.py
 │  ├─ main_window.py
 │  └─ components/
-│     ├─ **init**.py
+│     ├─ __init__.py
 │     └─ ... reusable UI widgets ...
 ├─ embedded/
-│  ├─ **init**.py
-│  ├─ system.py        # embedded logic (GPIO/I2C control)
-│  ├─ worker.py        # threaded loop + queue plumbing
+│  ├─ __init__.py
+│  ├─ system.py        # Embedded logic: GPIO, I2C, device control
+│  ├─ worker.py        # Threaded loop + queue plumbing
 │  └─ modules/
-│     ├─ **init**.py
-│     └─ ... optional device modules ...
+│     ├─ __init__.py
+│     └─ ... optional hardware/device modules ...
 └─ shared/
-├─ **init**.py
-└─ protocol.py      # Command/Event definitions shared by UI + embedded
-
+   ├─ __init__.py
+   └─ protocol.py      # Command/Event definitions shared by UI + embedded
 ```
-
-### Key files
-
-- `main.py`: App entry point. Creates `MainWindow` and starts the UI loop.
-- `ui/main_window.py`: UI, buttons, event polling (reads from `event_q`).
-- `embedded/worker.py`: Background thread that reads commands and calls `System`.
-- `embedded/system.py`: Hardware/system logic (GPIO, I2C devices, etc.).
-- `shared/protocol.py`: Command/Event definitions used by both layers.
 
 ---
 
-## Requirements
+## 🔩 Important Files
 
-### OS packages (required on the Pi)
+| File                 | Role                                                               |
+| -------------------- | ------------------------------------------------------------------ |
+| `main.py`            | App entry point. Creates the UI and starts the main loop.          |
+| `ui/main_window.py`  | Main CustomTkinter window, button handlers, and event polling.     |
+| `embedded/worker.py` | Background thread that reads commands and sends events back.       |
+| `embedded/system.py` | Hardware/system logic such as GPIO, I2C, sensors, motors, or LEDs. |
+| `shared/protocol.py` | Shared command and event objects used by both layers.              |
 
-Some dependencies are OS-level and cannot be installed via `pip`:
+---
+
+## 🧱 Requirements
+
+### Raspberry Pi OS packages
+
+Some dependencies must be installed at the OS level, not through `pip`:
 
 ```bash
 sudo apt update
 sudo apt install -y python3-tk python3-dev i2c-tools
-````
+```
 
-### Enable I2C (if using sensors/drivers like PCA9685 or VL53L1X)
+### Enable I2C if needed
+
+Enable I2C if your project uses sensors or drivers such as PCA9685, VL53L1X, OLED displays, IMUs, or other I2C hardware.
 
 ```bash
 sudo raspi-config
-# Interface Options -> I2C -> Enable
 ```
 
-(Optional) Add your user to hardware groups (then reboot/log out-in):
+Then go to:
+
+```text
+Interface Options → I2C → Enable
+```
+
+Optional hardware group setup:
 
 ```bash
 sudo usermod -aG i2c,gpio $USER
 ```
 
+After changing groups, reboot or log out and back in.
+
 ---
 
-## Setup (Virtual Environment)
+## 🧪 Setup
 
-Everything Python-related installs into the **project venv**:
+Create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+Upgrade the Python tooling:
+
+```bash
 python -m pip install --upgrade pip setuptools wheel
+```
+
+Install project dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## Run
+## ▶️ Running the App
 
 ### Run from terminal
 
@@ -119,155 +178,215 @@ python main.py
 
 ### Run from VS Code
 
-Use the included `.vscode/launch.json` configurations:
+The project includes VS Code launch configurations for:
 
-* Run main.py (UI)
-* Run as module: python -m main
-* Current file
+* `Run main.py`
+* `Run as module: python -m main`
+* `Current file`
+
+Open the Run and Debug panel in VS Code and choose the configuration you want.
 
 ---
 
-## Architecture Overview (UI ↔ Embedded)
+## 🛰️ Command/Event Protocol
 
-### 1) UI sends Commands
+The UI and embedded side communicate using shared protocol objects from `shared/protocol.py`.
 
-The UI places a `Command` object into the command queue:
+### UI sends commands
 
-```py
+Example: sending a command from the UI to toggle an LED.
+
+```python
 self.cmd_q.put(LedToggle(pin=12))
 ```
 
-### 2) Worker receives Commands
+### Worker receives commands
 
-The embedded worker thread reads from `cmd_q` and forwards to:
+The embedded worker reads from `cmd_q` and passes the command into the system layer.
 
-```py
+```python
 system.handle(cmd)
 ```
 
-### 3) Embedded publishes Events/logs
+### Embedded publishes events
 
-Embedded posts `Event` objects back to the UI through `event_q`:
+The embedded system can report logs, state changes, sensor updates, or status messages back to the UI.
 
-```py
+```python
 self.event_q.put(Log("LED toggled"))
 self.event_q.put(LedState(pin=12, on=True))
 ```
 
-### 4) UI polls Events (non-blocking)
+### UI polls events safely
 
-UI polls using `.after(...)` to stay responsive:
+The UI polls `event_q` using CustomTkinter/Tkinter’s `.after(...)` method.
 
-```py
+```python
 self.after(16, self.poll_events)
 ```
 
+This avoids blocking the UI thread.
+
 ---
 
-## Default Test System: GPIO12 LED
+## 💡 Default Test System: GPIO12 LED
 
-This template includes a basic test flow:
+The template includes a small hardware test using an LED connected to **BCM GPIO12**.
 
-* UI buttons: **ON / OFF / TOGGLE**
-* Sends `LedSet` / `LedToggle` commands to embedded
-* Embedded controls **BCM GPIO12**
+### Included UI controls
 
-### GPIO12 mapping
+* `ON`
+* `OFF`
+* `TOGGLE`
 
-* **BCM GPIO12** = **Physical pin 32**
+These buttons send `LedSet` and `LedToggle` commands to the embedded layer.
+
+### GPIO12 pin mapping
+
+| GPIO Mode  | Pin             |
+| ---------- | --------------- |
+| BCM GPIO12 | Physical pin 32 |
 
 ### Basic wiring
 
-* GPIO12 → resistor (220–1kΩ) → LED anode (+)
-* LED cathode (–) → GND
+```text
+GPIO12 ── resistor 220Ω–1kΩ ── LED anode (+)
+LED cathode (-) ────────────── GND
+```
 
-> If your LED is wired as active-low, set `active_high=False` in the embedded LED driver.
+If your LED is wired as active-low, set the LED driver to:
 
----
-
-## Clean Shutdown
-
-Closing the UI triggers:
-
-1. `WM_DELETE_WINDOW` handler calls `worker.shutdown()`
-2. Worker stops the thread loop and calls `system.shutdown()`
-3. Embedded releases GPIO resources and powers down devices safely
-4. App exits cleanly
-
-This prevents stuck GPIO states and leaves the system clean.
+```python
+active_high=False
+```
 
 ---
 
-## Extending the Template
+## 🧯 Clean Shutdown
+
+The app includes a safe shutdown path so hardware resources are released properly.
+
+When the UI closes:
+
+1. The `WM_DELETE_WINDOW` handler runs.
+2. The UI calls `worker.shutdown()`.
+3. The worker exits its loop.
+4. The worker calls `system.shutdown()`.
+5. GPIO/device resources are released.
+6. The application exits cleanly.
+
+This helps prevent stuck GPIO states, locked resources, and messy exits.
+
+---
+
+## 🛠️ Extending the Template
 
 ### Add a new hardware feature
 
-1. Define a new `Command`/`Event` in `shared/protocol.py`
-2. Handle it in `embedded/system.py`
-3. Add UI controls in `ui/main_window.py` or `ui/components/`
+1. Define a new `Command` and/or `Event` in `shared/protocol.py`.
+2. Handle the command inside `embedded/system.py`.
+3. Add UI controls in `ui/main_window.py` or inside `ui/components/`.
+4. Send events back to the UI when the hardware state changes.
 
-### Add device modules
+### Add reusable device modules
 
-Put reusable drivers/helpers in:
+Place drivers, wrappers, and hardware helpers inside:
 
-```
+```text
 embedded/modules/
 ```
 
+Good examples of modules:
+
+* LED controller
+* Servo controller
+* LiDAR reader
+* I2C sensor wrapper
+* Motor driver
+* Display driver
+* GPIO utility helpers
+
 ---
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
-### CustomTkinter/Tk errors
+### CustomTkinter or Tkinter errors
 
-Ensure Tkinter is installed:
+If the UI fails because Tkinter is missing, install it with:
 
 ```bash
 sudo apt install -y python3-tk
 ```
 
-### GPIO not working on Pi 5
+### GPIO not working on Raspberry Pi 5
 
-This template uses:
+This template is designed for Pi 5 GPIO compatibility using:
 
 * `gpiozero`
-* `LGPIOFactory` backend
-* `rpi-lgpio` installed in the venv
+* `LGPIOFactory`
+* `rpi-lgpio`
 
-Confirm venv + deps:
+Confirm your virtual environment is active and dependencies are installed:
 
 ```bash
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### I2C devices not found
+### I2C devices not detected
 
-* Enable I2C in `raspi-config`
-* Confirm on bus 1:
+First confirm I2C is enabled:
+
+```bash
+sudo raspi-config
+```
+
+Then scan bus 1:
 
 ```bash
 i2cdetect -y 1
 ```
 
----
+If nothing appears, check:
 
-## Template Usage
-
-This repository is intended as a reusable starter template:
-
-* Clone it
-* Rename the repo/folder
-* Replace the test LED system with your own hardware modules
-* Keep the structure and Command/Event pattern
+* SDA/SCL wiring
+* 3.3V vs 5V compatibility
+* Ground connection
+* Device address
+* Pull-up requirements
+* Whether the sensor/module is powered correctly
 
 ---
 
-## License
+## ♻️ Template Usage
+
+This repo is meant to be reused as a starter base for future Raspberry Pi hardware applications.
+
+Typical workflow:
+
+1. Clone the repo.
+2. Rename the folder/repository.
+3. Keep the UI ↔ worker ↔ system pattern.
+4. Replace the default LED test with your real hardware modules.
+5. Expand `shared/protocol.py` as your command/event language grows.
+
+---
+
+## 🧬 Good Project Fit
+
+This template works well for projects such as:
+
+* Raspberry Pi control panels
+* Sensor dashboards
+* LiDAR test rigs
+* Motor or servo controllers
+* GPIO testing tools
+* Embedded desktop utilities
+* Hardware debugging interfaces
+* Small lab/robotics control apps
+
+---
+
+## 📜 License
 
 MIT License — see the `LICENSE` file for details.
-
-```
-
----
-
